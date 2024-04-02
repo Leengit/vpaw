@@ -259,7 +259,8 @@ class VPAWModelOCTWidget(
             " `filename_dataset` (full path name for file like oct_real_datasets.xlsx),"
             " `filename_split` (full path name for file like split_real.xlsx), and"
             " `model_path` (disk+model_path is the location where model parameters and"
-            " testing results are saved)"
+            " testing results are saved, e.g., parent directory of"
+            " UNetPrior_in_channels_1_neighbor_2)"
             " are set for your local configuration."
         )
         if os.path.isfile(self.ui.VPAWOCTConfigFile.currentPath) and os.access(
