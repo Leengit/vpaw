@@ -513,10 +513,26 @@ class VPAWModelOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogi
                 # Install missing packages
                 with BusyCursor():
                     slicer.util.pip_install(["--upgrade", "pip", "setuptools", "wheel"])
-                    slicer.util.pip_install(
-                        [install_name for _, install_name in needs_installation]
-                        + ["--extra-index-url", "https://download.pytorch.org/whl/cpu"],
-                    )
+                    without_torch = [
+                        install_name
+                        for _, install_name in needs_installation
+                        if not install_name.startswith("torch")
+                    ]
+                    with_torch = [
+                        install_name
+                        for _, install_name in needs_installation
+                        if install_name.startswith("torch")
+                    ]
+                    if without_torch:
+                        slicer.util.pip_install(without_torch)
+                    if with_torch:
+                        slicer.util.pip_install(
+                            [
+                                *with_torch,
+                                "--index-url",
+                                "https://download.pytorch.org/whl/cu117",
+                            ],
+                        )
                     installed_modules = [
                         (
                             import_name,
