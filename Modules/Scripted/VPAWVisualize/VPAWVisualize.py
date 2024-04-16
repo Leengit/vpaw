@@ -3,59 +3,102 @@ import os
 import pickle as pk
 from pathlib import Path
 
-import numpy as np
-import vtk
-
 import ctk
+import numpy as np
 import qt
 import slicer
 import slicer.ScriptedLoadableModule
 import slicer.util
+import vtk
 from vpawvisualizelib.isosurfaces import isosurfaces_from_volume
 
 
-def summary_repr(contents):
+def summary_repr(contents, collapseSequences=False):
     """
     Like Python `repr`, returns a string representing the contents.  However, numpy
     arrays are summarized as their shape and unknown types are summarized by their type.
 
     Parameters
     ----------
-    contents : Python object
+    contents :
+        Python object
+    collapseSequences :
+        Set to True to summarize only the first of any list, tuple, or set that has
+        length longer than one.  In contrast, a dict will be presented in full.
 
     Returns
     -------
     A string representation of a summary of the object
+
     """
+    if isinstance(
+        contents, (bool, int, float, str, np.int32, np.int64, np.float32, np.float64),
+    ):
+        return repr(contents)
+    if isinstance(contents, (list, tuple, dict, set)) and len(contents) == 0:
+        return repr(type(contents)())
     if isinstance(contents, list):
-        return "[" + ", ".join([summary_repr(elem) for elem in contents]) + "]"
-    elif isinstance(contents, tuple):
-        if len(contents) == 1:
-            return "(" + summary_repr(contents[0]) + ",)"
-        else:
-            return "(" + ", ".join([summary_repr(elem) for elem in contents]) + ")"
-    elif isinstance(contents, dict):
+        if collapseSequences and len(contents) > 1:
+            return (
+                "["
+                + summary_repr(contents[0], collapseSequences)
+                + f", 'and {len(contents) - 1} more'"
+                + "]"
+            )
+        return (
+            "["
+            + ", ".join([summary_repr(elem, collapseSequences) for elem in contents])
+            + "]"
+        )
+    if isinstance(contents, tuple):
+        if collapseSequences and len(contents) > 1:
+            return (
+                "("
+                + summary_repr(contents[0], collapseSequences)
+                + f", 'and {len(contents) - 1} more'"
+                + ",)"
+            )
+        return (
+            "("
+            + ", ".join([summary_repr(elem, collapseSequences) for elem in contents])
+            + ",)"
+        )
+    if isinstance(contents, dict):
         return (
             "{"
             + ", ".join(
                 [
-                    summary_repr(key) + ": " + summary_repr(value)
-                    for (key, value) in contents.items()
+                    summary_repr(key, collapseSequences)
+                    + ": "
+                    + summary_repr(value, collapseSequences)
+                    for key, value in contents.items()
                 ],
             )
             + "}"
         )
-    elif isinstance(contents, set):
-        if len(contents) == 0:
-            return repr(set())
-        else:
-            return "{" + ", ".join([summary_repr(elem) for elem in contents]) + "}"
-    elif isinstance(contents, (int, float, np.float32, np.float64, bool, str)):
-        return repr(contents)
-    elif isinstance(contents, np.ndarray):
-        return repr(type(contents)) + ".shape=" + summary_repr(contents.shape)
-    else:
-        return repr(type(contents))
+    if isinstance(contents, set):
+        if collapseSequences and len(contents) > 1:
+            return (
+                "{"
+                + summary_repr(next(iter(contents)), collapseSequences)
+                + f", 'and {len(contents) - 1} more'"
+                + "}"
+            )
+        return (
+            "{"
+            + ", ".join([summary_repr(elem, collapseSequences) for elem in contents])
+            + "}"
+        )
+    if isinstance(contents, np.ndarray):
+        return (
+            repr(type(contents))
+            + "(shape="
+            + repr(contents.shape)
+            + ", dtype=np."
+            + repr(contents.dtype)
+            + ")"
+        )
+    return repr(type(contents))
 
 
 #
@@ -636,7 +679,7 @@ class VPAWVisualizeLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLog
             return self.loadCenterlineFromP3FileContents(contents)
 
         print(f"File type for {filename} is not currently supported")
-        print(f"{filename} contains {summary_repr(contents)}")
+        print(f"{filename} contains {summary_repr(contents,True)}")
 
         return None
 
