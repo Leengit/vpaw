@@ -1,61 +1,13 @@
 import logging
 import os
-import pickle as pk
 from pathlib import Path
 
-import numpy as np
-import vtk
-
 import ctk
-import qt
+import numpy as np
 import slicer
 import slicer.ScriptedLoadableModule
 import slicer.util
-
-
-def summary_repr(contents):
-    """
-    Like Python `repr`, returns a string representing the contents.  However, numpy
-    arrays are summarized as their shape and unknown types are summarized by their type.
-
-    Parameters
-    ----------
-    contents : Python object
-
-    Returns
-    -------
-    A string representation of a summary of the object
-    """
-    if isinstance(contents, list):
-        return "[" + ", ".join([summary_repr(elem) for elem in contents]) + "]"
-    elif isinstance(contents, tuple):
-        if len(contents) == 1:
-            return "(" + summary_repr(contents[0]) + ",)"
-        else:
-            return "(" + ", ".join([summary_repr(elem) for elem in contents]) + ")"
-    elif isinstance(contents, dict):
-        return (
-            "{"
-            + ", ".join(
-                [
-                    summary_repr(key) + ": " + summary_repr(value)
-                    for (key, value) in contents.items()
-                ],
-            )
-            + "}"
-        )
-    elif isinstance(contents, set):
-        if len(contents) == 0:
-            return repr(set())
-        else:
-            return "{" + ", ".join([summary_repr(elem) for elem in contents]) + "}"
-    elif isinstance(contents, (int, float, np.float32, np.float64, bool, str)):
-        return repr(contents)
-    elif isinstance(contents, np.ndarray):
-        return repr(type(contents)) + ".shape=" + summary_repr(contents.shape)
-    else:
-        return repr(type(contents))
-
+import vtk
 
 #
 # VPAWVisualizeOCT
@@ -106,9 +58,8 @@ def registerSampleData():
     Add data sets to Sample Data module.
     """
     # It is always recommended to provide sample data for users to make it easy to try
-    # the module, but if no sample data is available then this method (and associated
+    # the module, but if no sample data are available then this method (and associated
     # startupCompeted signal connection) can be removed.
-
     pass
 
 
@@ -187,7 +138,7 @@ class VPAWVisualizeOCTWidget(
         self.ui.DataDirectory.connect(
             "currentPathChanged(const QString&)", self.updateParameterNodeFromGUI,
         )
-        self.ui.PatientPrefix.connect(
+        self.ui.ImageId.connect(
             "textChanged(const QString&)", self.updateParameterNodeFromGUI,
         )
         self.ui.DataDirectory.connect(
@@ -199,17 +150,7 @@ class VPAWVisualizeOCTWidget(
         self.ui.VPAWVisualizeButton.connect("clicked(bool)", self.onVPAWVisualizeButton)
         self.ui.VPAWModelOCTButton.connect("clicked(bool)", self.onVPAWModelOCTButton)
         self.ui.HomeButton.connect("clicked(bool)", self.onHomeButton)
-
         self.ui.showButton.connect("clicked(bool)", self.onShowButton)
-        self.ui.computeIsosurfacesButton.connect(
-            "clicked(bool)", self.onComputeIsosurfacesButton,
-        )
-        self.updateComputeIsosurfacesButtonEnabledness()
-
-        # Sliders
-        self.ui.segmentationOpacitySlider.connect(
-            "valueChanged(int)", self.onSegmentationOpacitySliderValueChanged,
-        )
 
         # Make sure parameter node is initialized (needed for module reload)
         self.initializeParameterNode()
@@ -270,7 +211,6 @@ class VPAWVisualizeOCTWidget(
         # Parameter node stores all user choices in parameter values, node selections,
         # etc. so that when the scene is saved and reloaded, these settings are
         # restored.
-
         self.setParameterNode(self.logic.getParameterNode())
 
     def setParameterNode(self, inputParameterNode):
@@ -322,19 +262,16 @@ class VPAWVisualizeOCTWidget(
         self.ui.DataDirectory.currentPath = self._parameterNode.GetParameter(
             "DataDirectory",
         )
-        self.ui.PatientPrefix.text = self._parameterNode.GetParameter("PatientPrefix")
+        self.ui.ImageId.text = self._parameterNode.GetParameter("ImageId")
 
         # Update buttons states and tooltips
-        if (
-            os.path.isdir(self.ui.DataDirectory.currentPath)
-            and self.ui.PatientPrefix.text != ""
-        ):
+        if os.path.isdir(self.ui.DataDirectory.currentPath):
             # Enable show button
             self.ui.showButton.toolTip = (
                 f"Show files from {self.ui.DataDirectory.currentPath!r}"
                 + (
-                    f" with prefix {self.ui.PatientPrefix.text!r}"
-                    if self.ui.PatientPrefix.text != ""
+                    f" with id {self.ui.ImageId.text!r}"
+                    if self.ui.ImageId.text != ""
                     else ""
                 )
             )
@@ -342,8 +279,7 @@ class VPAWVisualizeOCTWidget(
         else:
             # Disable show button
             self.ui.showButton.toolTip = (
-                "Show is disabled; first select a valid "
-                "data directory and patient prefix."
+                "Show is disabled; first select a valid data directory."
             )
             self.ui.showButton.enabled = False
 
@@ -361,12 +297,10 @@ class VPAWVisualizeOCTWidget(
 
         # Modify all properties in a single batch
         wasModified = self._parameterNode.StartModify()
-
         self._parameterNode.SetParameter(
             "DataDirectory", self.ui.DataDirectory.currentPath,
         )
-        self._parameterNode.SetParameter("PatientPrefix", self.ui.PatientPrefix.text)
-
+        self._parameterNode.SetParameter("ImageId", self.ui.ImageId.text)
         self._parameterNode.EndModify(wasModified)
 
     @vtk.calldata_type(vtk.VTK_LONG)
@@ -374,7 +308,7 @@ class VPAWVisualizeOCTWidget(
         """
         Callback for when a subject hierarchy item is modified.
         """
-        qt.QTimer.singleShot(2000, self.updateComputeIsosurfacesButtonEnabledness)
+        pass
 
     def onHomeButton(self):
         """
@@ -406,77 +340,23 @@ class VPAWVisualizeOCTWidget(
         to 3D Slicer's subject hierarchy.
         """
         with slicer.util.tryWithErrorDisplay(
-            "Failed to show patient data.", waitCursor=True,
+            "Failed to show image data.", waitCursor=True,
         ):
-            if self.ui.PatientPrefix.text == "":
-                raise ValueError("Provide a patient prefix for which to show data.")
-            list_of_files = self.logic.find_and_sort_files_with_prefix(
-                self.ui.DataDirectory.currentPath, self.ui.PatientPrefix.text,
+            list_of_files = self.logic.find_and_sort_files_with_id(
+                self.ui.DataDirectory.currentPath, self.ui.ImageId.text,
             )
             if len(list_of_files) == 0:
-                raise FileNotFoundError("No patient found with the given prefix.")
-            self.logic.clearSubject()
-            self.logic.loadNodesToSubjectHierarchy(
-                list_of_files, self.ui.PatientPrefix.text,
-            )
-            self.logic.arrangeView()
-            self.updateComputeIsosurfacesButtonEnabledness()
-            self.onSegmentationOpacitySliderValueChanged(
-                self.ui.segmentationOpacitySlider.value,
-            )
-
-    def onComputeIsosurfacesButton(self):
-        """
-        Compute isosurfaces of the laplace sol'n image
-        """
-        with slicer.util.tryWithErrorDisplay(
-            "Unable to compute isosurfaces; see exception message below.",
-            waitCursor=True,
-        ):
-            try:
-                # show progress bar
-                self.ui.computeIsosurfacesStackedWidget.setCurrentIndex(1)
-
-                def progress_callback(progress_percentage):
-                    self.ui.computeIsosurfacesProgressBar.setValue(progress_percentage)
-
-                progress_callback(0)
-                # I found the following processEvents call was needed to get the widget
-                # to visually repaint before the progress increases in the
-                # computation.  -E
-                slicer.app.processEvents()
-                self.logic.compute_isosurfaces(
-                    self.ui.numberOfIsosurfaceValues.value, progress_callback,
+                raise FileNotFoundError(
+                    "No images found"
+                    + (
+                        f" with image id {self.ui.ImageId.text!r}."
+                        if self.ui.ImageId.text != ""
+                        else "."
+                    ),
                 )
-            finally:
-                # revert to showing button
-                self.ui.computeIsosurfacesStackedWidget.setCurrentIndex(0)
-                self.updateComputeIsosurfacesButtonEnabledness()
-
-    def onSegmentationOpacitySliderValueChanged(self, value: int):
-        self.logic.set_segmentation_node_opacity(
-            value / self.ui.segmentationOpacitySlider.maximum,
-        )
-
-    def updateComputeIsosurfacesButtonEnabledness(self):
-        """
-        Enable or disable the compute isosurfaces button based on state of the
-        VPAWVisualizeOCTLogic
-        """
-        if not self.logic.subjectIsCurrentlyLoaded():
-            self.ui.computeIsosurfacesButton.setEnabled(False)
-            self.ui.computeIsosurfacesButton.setToolTip("Load a subject to enable this")
-            return
-        if self.logic.isosurface_exists():
-            self.ui.computeIsosurfacesButton.setEnabled(False)
-            self.ui.computeIsosurfacesButton.setToolTip(
-                "Isosurfaces model already exists",
-            )
-            return
-        self.ui.computeIsosurfacesButton.setEnabled(True)
-        self.ui.computeIsosurfacesButton.setToolTip(
-            "Compute isosurfaces model from the laplace solution",
-        )
+            self.logic.clearSubject()
+            self.logic.loadNodesToSubjectHierarchy(list_of_files, self.ui.ImageId.text)
+            self.logic.arrangeView()
 
 
 #
@@ -510,9 +390,9 @@ class VPAWVisualizeOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModule
         if not parameterNode.GetParameter("Invert"):
             parameterNode.SetParameter("Invert", "false")
 
-    def find_files_with_prefix(self, path, prefix, include_subjectless=False):
+    def find_files_with_id(self, path, id, include_subjectless=False):
         """
-        Find all file names within `path` recursively that start with `prefix`
+        Find all file names within `path` recursively that contain `id`
 
         Parameters
         ----------
@@ -520,21 +400,21 @@ class VPAWVisualizeOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModule
             Initially, the top-level directory to be scanned for files.  For recursive
             calls, it will be a directory or file within the top-level directory's
             hierarchy.
-        prefix: str
+        id: str
             A value such as "1000_" will find all proper files that have basenames that
-            start with that string.  If prefix=="" then all files regardless of name
-            will be reported.
+            contain that string.  If id=="" then all files regardless of name will be
+            reported.
         include_subjectless: bool
-            If set to True then files not associated with any patient will also be
+            If set to True then files not associated with any image will also be
             included.
 
         Returns
         -------
         When `path` is a file, returns the one-tuple list `[(path, mtime)]` if the
-            `path` basename begins with `prefix`; otherwise returns an empty list.
+            `path` basename contains `id`; otherwise returns an empty list.
             "mtime" is the modification time returned by os.path.getmtime(path).
         When `path` is a directory, returns the concatenation of the lists generated by
-            a recursive call to find_files_with_prefix for each entry in the directory.
+            a recursive call to find_files_with_id for each entry in the directory.
         """
         if os.path.isdir(path):
             # This `path` is a directory.  Recurse to all files and directories within
@@ -542,17 +422,17 @@ class VPAWVisualizeOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModule
             response = [
                 record
                 for sub in os.listdir(path)
-                for record in self.find_files_with_prefix(
-                    os.path.join(path, sub), prefix, include_subjectless,
+                for record in self.find_files_with_id(
+                    os.path.join(path, sub), id, include_subjectless,
                 )
             ]
         else:
             # This path is not a directory.  Return a list containting the path if the
-            # path basename begins with `prefix`, otherwise return an empty list.
+            # path basename contains `id`, otherwise return an empty list.
             response = [
                 (p, os.path.getmtime(p))
                 for p in (path,)
-                if os.path.basename(p).startswith(prefix)
+                if id in os.path.basename(p)
                 or (
                     include_subjectless
                     and (
@@ -564,19 +444,19 @@ class VPAWVisualizeOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModule
             ]
         return response
 
-    def find_and_sort_files_with_prefix(self, dataDirectory, patientPrefix):
+    def find_and_sort_files_with_id(self, dataDirectory, imageId):
         """
-        Find all file names within `path` recursively that start with `prefix`, and sort
-        them by their modification times
+        Find all file names within `path` recursively that contain `id`, and sort them
+        by their modification times
 
         Parameters
         ----------
         dataDirectory : str
             The top-level directory to be scanned for files.
-        patientPrefix: str
+        imageId: str
             A value such as "1000_" will find all proper files that have basenames that
-            start with that string.  If prefix=="" then all files regardless of name
-            will be reported.
+            contain that string.  If id=="" then all files regardless of name will be
+            reported.
 
         Returns
         -------
@@ -585,18 +465,18 @@ class VPAWVisualizeOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModule
         """
         if not (isinstance(dataDirectory, str) and os.path.isdir(dataDirectory)):
             raise ValueError(f"Data directory (value={dataDirectory!r}) is not valid")
-        if not (patientPrefix is None or isinstance(patientPrefix, str)):
-            raise ValueError(f"Patient prefix (value={patientPrefix!r}) is not valid")
-        if patientPrefix is None:
-            patientPrefix = ""
+        if not (imageId is None or isinstance(imageId, str)):
+            raise ValueError(f"Image id (value={imageId!r}) is not valid")
+        if imageId is None:
+            imageId = ""
 
         import time
 
         startTime = time.time()
         logging.info("Processing started")
 
-        list_of_records = self.find_files_with_prefix(
-            dataDirectory, patientPrefix, include_subjectless=False,
+        list_of_records = self.find_files_with_id(
+            dataDirectory, imageId, include_subjectless=False,
         )
         # Sort by modification time
         list_of_records.sort(key=lambda record: record[1])
@@ -607,34 +487,6 @@ class VPAWVisualizeOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModule
         logging.info(f"Processing completed in {stopTime-startTime:.2f} seconds")
 
         return list_of_files
-
-    def loadFromP3File(self, filename, properties):
-        """
-        Load a node based upon a P3 file, in lieu of a 3D Slicer "slicer.util.load*"
-        function.
-
-        Parameters
-        ----------
-        filename : str
-            The file from which to read the data that will define the created node
-        properties : dict
-            A dictionary of properties that otherwise would be passed to most
-            slicer.util.load* functions, but in this case is parsed for anything useful
-
-        Returns
-        -------
-        A 3D Slicer node object representing the data
-        """
-        with open(filename, "rb") as f:
-            contents = pk.load(f)
-
-        if Path(filename).parent.stem == "centerline":
-            return self.loadCenterlineFromP3FileContents(contents)
-
-        print(f"File type for {filename} is not currently supported")
-        print(f"{filename} contains {summary_repr(contents)}")
-
-        return None
 
     def loadCenterlineFromP3FileContents(self, contents):
         """
@@ -709,8 +561,6 @@ class VPAWVisualizeOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModule
             node.LockedOn()  # don't allow mouse interaction to move control points
         elif filename.endswith(".mha") or filename.endswith(".png"):
             node = slicer.util.loadVolume(filename, properties=props)
-        elif filename.endswith(".p3"):
-            node = self.loadFromP3File(filename, properties=props)
         elif filename.endswith(".xls"):
             print(f"File type for {basename_repr} is not currently supported")
             node = None
@@ -733,7 +583,6 @@ class VPAWVisualizeOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModule
         self.segmentation_node = None
         self.laplace_sol_node = None
         self.laplace_sol_masked_node = None
-        self.laplace_isosurface_node = None
         self.clearSubjectHierarchy()
 
     def clearSubjectHierarchy(self):
@@ -813,7 +662,7 @@ class VPAWVisualizeOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModule
         """
         self.subject_id = subject_name
 
-        # The subject hierarchy node can contain subject (patient), study (optionally),
+        # The subject hierarchy node can contain subject (image), study (optionally),
         # and node items.  slicer.mrmlScene knows how to find the subject hierarchy
         # node.
         shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
@@ -948,52 +797,6 @@ class VPAWVisualizeOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModule
         threeDView.resetCamera(False, False, True)
         threeDView.lookFromAxis(ctk.ctkAxesWidget.Left)
 
-    def set_segmentation_node_opacity(self, opacity):
-        """
-        Set segmentation node opacity, a float in [0,1], if segmentation node exists.
-        If segmentation node doesn't exist, this simply does nothing.
-        """
-        if self.segmentation_node is not None:
-            self.segmentation_node.GetDisplayNode().SetOpacity3D(opacity)
-
-    def compute_isosurfaces(self, num_isosurface_values: int, progress_callback=None):
-        """
-        Compute isosurfaces of the laplace solution image, if one exists.  Raises
-        exception if none exists.
-
-        Args:
-            num_isosurface_values: number of isosurface values
-            progress_callback: Optionally, a function that takes a progress_percentage
-                float value.  If this is provided then
-                progress_callback(progress_percentage) will be called by
-                compute_isosurfaces while the computation is being done.
-        """
-        if self.laplace_sol_node is None:
-            raise RuntimeError("Could not find a loaded Laplace solution image")
-        if self.laplace_sol_masked_node is None:
-            raise RuntimeError(
-                "No masked Laplace solution was found; there should be a volume node"
-                " consisting of the Laplace solution restricted to the airway"
-                " segmentation.",
-            )
-
-        isosurface_values = np.linspace(0, 1, num_isosurface_values)
-
-        # this does not work so well at actual min or max value so we leave a bit of
-        # room
-        isosurface_values[0] += 0.02
-        isosurface_values[-1] -= 0.02
-
-    def isosurface_exists(self) -> bool:
-        """
-        Whether isosurface has already been computed
-        """
-        return (
-            self.laplace_isosurface_node is not None
-            and slicer.mrmlScene.GetNodeByID(self.laplace_isosurface_node.GetID())
-            is not None
-        )
-
 
 #
 # VPAWVisualizeOCTTest
@@ -1036,5 +839,4 @@ class VPAWVisualizeOCTTest(slicer.ScriptedLoadableModule.ScriptedLoadableModuleT
         self.delayDisplay("Starting the test")
 
         # Get/create input data
-
         self.delayDisplay("Test skipped")
