@@ -108,7 +108,7 @@ def registerSampleData():
     Add data sets to Sample Data module.
     """
     # It is always recommended to provide sample data for users to make it easy to try
-    # the module, but if no sample data is available then this method (and associated
+    # the module, but if no sample data are available then this method (and associated
     # startupCompeted signal connection) can be removed.
 
     pass

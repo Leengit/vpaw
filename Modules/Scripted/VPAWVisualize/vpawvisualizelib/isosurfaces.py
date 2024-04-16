@@ -1,6 +1,5 @@
-import vtk
-
 import slicer
+import vtk
 
 
 def isosurfaces_from_volume(
