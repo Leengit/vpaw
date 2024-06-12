@@ -76,7 +76,7 @@ def registerSampleData():
     Add data sets to Sample Data module.
     """
     # It is always recommended to provide sample data for users to make it easy to try
-    # the module, but if no sample data is available then this method (and associated
+    # the module, but if no sample data are available then this method (and associated
     # startupCompeted signal connection) can be removed.
 
     pass
@@ -261,13 +261,13 @@ class VPAWModelWidget(
         else:
             self.ui.linkPediatricAirwayAtlasButton.toolTip = (
                 "Install is disabled; first select a valid source code directory for"
-                + " the Pediatric Airway Atlas"
+                " the Pediatric Airway Atlas"
             )
             self.ui.linkPediatricAirwayAtlasButton.enabled = False
 
         self.ui.VPAWRootDirectory.toolTip = (
             "Directory containing FilteredControlBlindingLogUniqueScanFiltered.xls,"
-            + " images/*, and landmarks/*."
+            " images/*, and landmarks/*."
         )
         self.ui.VPAWModelDirectory.toolTip = (
             "Directory containing file named like '116(158.10-38.AM.24.Mar).pth'"
@@ -283,7 +283,7 @@ class VPAWModelWidget(
         else:
             self.ui.runPediatricAirwayAtlasButton.toolTip = (
                 "Run is disabled; first select input/output root directory and models"
-                + " directory"
+                " directory"
             )
             self.ui.runPediatricAirwayAtlasButton.enabled = False
 
@@ -469,7 +469,7 @@ class VPAWModelLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
         stopTime = time.time()
         logging.info(
             f"Pediatric Airway Atlas installation completed in {stopTime-startTime:.2f}"
-            + " seconds",
+            " seconds",
         )
         return response
 
@@ -500,7 +500,7 @@ class VPAWModelLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
         except ImportError:
             slicer.util.errorDisplay(
                 f"Unable to find pediatric_airway_atlas.{import_name}\n"
-                + "Check the console for details.",
+                "Check the console for details.",
                 "Install Error",
             )
             return False
@@ -615,16 +615,14 @@ class VPAWModelLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
         # self.convertCTScansToNRRD(vPAWRootDirectory)
         response = self.convertFCSVLandmarksToP3(
             vPAWRootDirectory, patientPrefix,
-        ) and self.runSegmentation(
-            vPAWRootDirectory, vPAWModelDirectory, patientPrefix,
-        )
+        ) and self.runSegmentation(vPAWRootDirectory, vPAWModelDirectory, patientPrefix)
         if response:
             slicer.util.infoDisplay("The pipeline has completed", "Pipeline ran")
 
         stopTime = time.time()
         logging.info(
             f"Pediatric Airway Atlas pipeline completed in {stopTime-startTime:.2f}"
-            + " seconds",
+            " seconds",
         )
         return response
 
@@ -655,11 +653,11 @@ class VPAWModelLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
                 except Exception:
                     slicer.util.errorDisplay(
                         "The run failed.  It may be that a non-blank patient prefix is"
-                        + " not supported by this version of pediatric_airway_atlas"
-                        + ".conversion_utils.generate_pixel_space_landmarks."
-                        + "  Please update pediatric_airway_atlas and try again."
-                        + "  Alternatively, it may be that you entered a patient prefix"
-                        + " that does not exist.",
+                        " not supported by this version of pediatric_airway_atlas"
+                        ".conversion_utils.generate_pixel_space_landmarks."
+                        "  Please update pediatric_airway_atlas and try again."
+                        "  Alternatively, it may be that you entered a patient prefix"
+                        " that does not exist.",
                         "Run Error",
                     )
                     return False
@@ -780,11 +778,11 @@ class VPAWModelLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
                 except Exception:
                     slicer.util.errorDisplay(
                         "The run failed.  It may be that a non-blank patient prefix is"
-                        + " not supported by this version of pediatric_airway_atlas"
-                        + ".atlas_builder_configurable."
-                        + "  Please update pediatric_airway_atlas and try again."
-                        + "  Alternatively, it may be that you entered a patient prefix"
-                        + " that does not exist.",
+                        " not supported by this version of pediatric_airway_atlas"
+                        ".atlas_builder_configurable."
+                        "  Please update pediatric_airway_atlas and try again."
+                        "  Alternatively, it may be that you entered a patient prefix"
+                        " that does not exist.",
                         "Run Error",
                     )
                     return False

@@ -73,7 +73,7 @@ def registerSampleData():
     Add data sets to Sample Data module.
     """
     # It is always recommended to provide sample data for users to make it easy to try
-    # the module, but if no sample data is available then this method (and associated
+    # the module, but if no sample data are available then this method (and associated
     # startupCompeted signal connection) can be removed.
 
     pass
@@ -240,7 +240,7 @@ class VPAWModelOCTWidget(
         else:
             self.ui.linkOCTSegButton.toolTip = (
                 "Install is disabled; first select a valid source code directory for"
-                + " the OCT Segmentation"
+                " the OCT Segmentation"
             )
             self.ui.linkOCTSegButton.enabled = False
 
@@ -435,7 +435,7 @@ class VPAWModelOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogi
         stopTime = time.time()
         logging.info(
             f"OCT Segmentation installation completed in {stopTime-startTime:.2f}"
-            + " seconds",
+            " seconds",
         )
         return response
 
@@ -558,11 +558,7 @@ class VPAWModelOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogi
         self.showInstalledModules(installed_modules)
         return True
 
-    def runOCTSeg(
-        self,
-        octSegDirectory,
-        vPAWOCTConfigFile,
-    ):
+    def runOCTSeg(self, octSegDirectory, vPAWOCTConfigFile):
         """
         Run the OCT Segmentation pipeline.
         Can be used without GUI widget.
@@ -597,8 +593,7 @@ class VPAWModelOCTLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogi
 
         stopTime = time.time()
         logging.info(
-            f"OCT Segmentation pipeline completed in {stopTime-startTime:.2f}"
-            + " seconds",
+            f"OCT Segmentation pipeline completed in {stopTime-startTime:.2f} seconds",
         )
         return response
 
