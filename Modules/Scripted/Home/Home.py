@@ -38,6 +38,8 @@ class HomeWidget(
     https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
     """
 
+    customQssEnabled = False
+
     def __init__(self, parent):
         slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget.__init__(
             self, parent,
@@ -74,6 +76,9 @@ class HomeWidget(
         self.ui.VPAWVisualizeOCTButton.connect(
             "clicked(bool)", self.onVPAWVisualizeOCTButton,
         )
+
+        self.customQssEnabled = False
+        self.toggleStyle2()
 
     def setupNodes(self):
         # Set up the layout / 3D View
@@ -118,6 +123,10 @@ class HomeWidget(
         self.CustomToolBar.name = "CustomToolBar"
         slicer.util.mainWindow().insertToolBar(mainToolBar, self.CustomToolBar)
 
+        moduleIcon = qt.QIcon(":/Icons/Restyle.png")
+        self.StyleAction = self.CustomToolBar.addAction(moduleIcon, "")
+        self.StyleAction.triggered.connect(self.toggleStyle2)
+
         # centralaa = slicer.util.findChild(
         #     slicer.util.mainWindow(), name="CentralWidget"
         # )
@@ -138,6 +147,16 @@ class HomeWidget(
     def toggleStyle(self, visible):
         if visible:
             self.applyApplicationStyle()
+        else:
+            slicer.app.styleSheet = ""
+
+    def toggleStyle2(self):
+        self.customQssEnabled = not self.customQssEnabled
+        if self.customQssEnabled:
+            with open(self.resourcePath("Home.qss")) as fh:
+                style = fh.read()
+                for widget in [slicer.app]:
+                    widget.styleSheet = style
         else:
             slicer.app.styleSheet = ""
 

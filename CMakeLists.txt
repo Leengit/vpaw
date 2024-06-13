@@ -164,6 +164,7 @@ set(Slicer_EXTENSION_SOURCE_DIRS
 #  GIT_PROGRESS   1
 #  QUIET
 #  )
+#message(STATUS "Remote - ${extension_name} [OK]")
 #list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
 
 #SlicerMorph modules
@@ -176,6 +177,7 @@ FetchContent_Populate(${extension_name}
  GIT_PROGRESS   1
  QUIET
  )
+message(STATUS "Remote - ${extension_name} [OK]")
 list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR}/ImageStacks)
 
 # #FlyThrough modules
@@ -188,6 +190,7 @@ list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR}/ImageSt
 #  GIT_PROGRESS   1
 #  QUIET
 #  )
+# message(STATUS "Remote - ${extension_name} [OK]")
 # list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
 
 #SlicerSegmentEditorExtraEffects modules
@@ -213,6 +216,7 @@ FetchContent_Populate(${extension_name}
  GIT_PROGRESS   1
  QUIET
  )
+message(STATUS "Remote - ${extension_name} [OK]")
 list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
 
 #AirwaySegmentation modules
@@ -225,6 +229,7 @@ FetchContent_Populate(${extension_name}
  GIT_PROGRESS   1
  QUIET
  )
+message(STATUS "Remote - ${extension_name} [OK]")
 list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
 
 # Add Slicer sources
