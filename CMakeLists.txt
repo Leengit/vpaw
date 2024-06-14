@@ -180,6 +180,19 @@ FetchContent_Populate(${extension_name}
 message(STATUS "Remote - ${extension_name} [OK]")
 list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR}/ImageStacks)
 
+#SlicerSandbox modules
+set(extension_name "SlicerSandbox")
+set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
+FetchContent_Populate(${extension_name}
+ SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
+ GIT_REPOSITORY https://github.com/PerkLab/SlicerSandbox.git
+ GIT_TAG        9c4b2b83f6285dcb99891be4954df4a51e5e1af6 # 2023-07-31
+ GIT_PROGRESS   1
+ QUIET
+ )
+message(STATUS "Remote - ${extension_name} [OK]")
+list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
+
 # #FlyThrough modules
 # set(extension_name "FlyThrough")
 # set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
