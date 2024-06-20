@@ -193,6 +193,19 @@ FetchContent_Populate(${extension_name}
 message(STATUS "Remote - ${extension_name} [OK]")
 list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
 
+#SlicerThemes modules
+set(extension_name "SlicerThemes")
+set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
+FetchContent_Populate(${extension_name}
+ SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
+ GIT_REPOSITORY https://github.com/sjh26/SlicerThemes.git
+ GIT_TAG        b072c661bb1419deae9bd3ac53171d8234084d03 # 2024-04-22
+ GIT_PROGRESS   1
+ QUIET
+ )
+message(STATUS "Remote - ${extension_name} [OK]")
+list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
+
 # #FlyThrough modules
 # set(extension_name "FlyThrough")
 # set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
