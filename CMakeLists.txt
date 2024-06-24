@@ -172,7 +172,7 @@ set(extension_name "SlicerMorph")
 set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
- GIT_REPOSITORY https://github.com/SlicerMorph/SlicerMorph.git
+ GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/SlicerMorph/SlicerMorph.git
  GIT_TAG        270e10baf009807b6107941dd75cb109a9d79905  #2024-01-02
  GIT_PROGRESS   1
  QUIET
@@ -185,7 +185,7 @@ set(extension_name "SlicerSandbox")
 set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
- GIT_REPOSITORY https://github.com/PerkLab/SlicerSandbox.git
+ GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/PerkLab/SlicerSandbox.git
  GIT_TAG        9c4b2b83f6285dcb99891be4954df4a51e5e1af6 # 2023-07-31
  GIT_PROGRESS   1
  QUIET
@@ -198,7 +198,7 @@ set(extension_name "SlicerThemes")
 set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
- GIT_REPOSITORY https://github.com/sjh26/SlicerThemes.git
+ GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/sjh26/SlicerThemes.git
  GIT_TAG        b072c661bb1419deae9bd3ac53171d8234084d03 # 2024-04-22
  GIT_PROGRESS   1
  QUIET
@@ -211,7 +211,7 @@ list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
 # set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 # FetchContent_Populate(${extension_name}
 #  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
-#  GIT_REPOSITORY https://github.com/andinet/FlyThrough.git
+#  GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/andinet/FlyThrough.git
 #  GIT_TAG        5761298cb1bfa602a86ba4fb6b0c29115e1b092a
 #  GIT_PROGRESS   1
 #  QUIET
@@ -224,7 +224,7 @@ set(extension_name "SlicerSegmentEditorExtraEffects")
 set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
- GIT_REPOSITORY https://github.com/lassoan/SlicerSegmentEditorExtraEffects.git
+ GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/lassoan/SlicerSegmentEditorExtraEffects.git
  GIT_TAG        f43df35af66a0b60000b008e0fa061d53319dc78  #2023-04-15
  GIT_PROGRESS   1
  QUIET
@@ -237,7 +237,7 @@ set(extension_name "MarkupsToModel")
 set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
- GIT_REPOSITORY https://github.com/SlicerIGT/SlicerMarkupsToModel.git
+ GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/SlicerIGT/SlicerMarkupsToModel.git
  GIT_TAG        312cf9f8ccb84613e191a0a3f18cd3f865026aeb  #2023-08-23
  GIT_PROGRESS   1
  QUIET
@@ -250,7 +250,7 @@ set(extension_name "AirwaySegmentation")
 set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
- GIT_REPOSITORY https://github.com/Slicer/SlicerAirwaySegmentation.git
+ GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/Slicer/SlicerAirwaySegmentation.git
  GIT_TAG        d3954e4c1b943353811132d49111f58e40ded5b8  #2022-03-22
  GIT_PROGRESS   1
  QUIET
